@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-bind="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>line Chart Example</title>
+    <link rel=icon href="favicon.ico"/>
+
+    <!-- Styles -->
+    <style>
+    #chartdiv {
+      width: 100%;
+      height: 500px;
+    }
+
+    
+    </style>
+
+</head>
+<body>
+
+
+<!-- HTML -->
+<div id="chartdiv"></div>
+
+<div class="dol-wrp"><svg id="dimension-opening-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 27 49" width="40"><path class="cls-2a" d="M18.88,38.69l12.44,7.78a7.1,7.1,0,0,0,2.39.94l-9.57,5.85a2.12,2.12,0,0,1-2.36-.11L10.93,46.56A1.49,1.49,0,0,1,10.36,45a2.75,2.75,0,0,1,1-1.42S12.73,42.29,18.88,38.69Z" transform="translate(-9.79 -5.27)"></path><path class="cls-3a" d="M9.79,43.12a5.17,5.17,0,0,1,1.65-1.5L23.08,34s0.8-.39.8-2.05V24.33s0.31-3.34-2.61-1.82l-8.9,5.33S9.79,28.92,9.79,33V43.12Z" transform="translate(-9.79 -5.27)"></path><path class="cls-4a" d="M25.67,41.15l6.45,4s2.19,1.35,3.25.64c0,0,.92-0.34.86-2V13.34a3.87,3.87,0,0,0-1.14-2.92,38.38,38.38,0,0,0-7.5-4.9s-1.91-1.21-1.9,1.77Z" transform="translate(-9.79 -5.27)"></path></svg><h2></h2></div>
+
+<!-- Resources -->
+<script src="//code.jquery.com/jquery-2.1.3.min.js"></script>
+<script src="js/lib/papaparse.min.js"></script>
+
+
+<!-- AMChart Resources -->
+<script src="https://www.amcharts.com/lib/4/core.js"></script>
+<script src="https://www.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+
+
+<script>
+
+    const graphData = [];
+
+    Papa.parse('csv/data_test.csv', {    // update csv file path
+        header: true,
+        download: true,
+        complete: function (results) {
+
+            let cleanResults = results.data;
+            results.errors.forEach(function (err) {
+                if(err.type === "FieldMismatch") {
+                    cleanResults.splice(err.row, 1);
+                }
+            });
+
+            cleanResults.forEach( function (ee) {
+                graphData.push( ee );
+            });
+
+            startGraph();
+        }
+    });
+
+    function startGraph() {
+
+    // graph code goes here
+        
+        // Themes begin
+        
+        am4core.useTheme(am4themes_animated);
+  
+        // Themes end
+        
+        // Create chart instance
+        var chart = am4core.create("chartdiv", am4charts.XYChart);
+        chart.paddingRight = 20;
+        
+        // Add data, Change to Papa Parse Constant
+        chart.data = graphData
+        
+        // Create axes
+        var categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+        categoryAxis.dataFields.category = "Category";
+        categoryAxis.renderer.minGridDistance = 50;
+        categoryAxis.renderer.grid.template.location = 0.5;
+        categoryAxis.startLocation = 0.5;
+        categoryAxis.endLocation = 0.5;
+        
+        // Create value axis
+        var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+        valueAxis.baseValue = 0;
+        
+        // Create series
+        var series = chart.series.push(new am4charts.LineSeries());
+        series.dataFields.valueY = "Value";
+        series.dataFields.categoryX = "Category";
+        series.strokeWidth = 2;
+        series.tensionX = 0.77;
+        
+        // bullet is added because we add tooltip to a bullet for it to change color
+        var bullet = series.bullets.push(new am4charts.Bullet());
+        bullet.tooltipText = "{DisplayValue}";
+        
+        bullet.adapter.add("fill", function(fill, target){
+            if(target.dataItem.valueY < 30){
+                return am4core.color("red");
+            }
+            return fill;
+        })
+        var range = valueAxis.createSeriesRange(series);
+        range.value = 0;
+        range.endValue = -1000;
+        range.contents.stroke = am4core.color("#FF0000");
+        range.contents.fill = range.contents.stroke;
+        
+        // Add scrollbar
+        var scrollbarX = new am4charts.XYChartScrollbar();
+        scrollbarX.series.push(series);
+        chart.scrollbarX = scrollbarX;
+        
+        chart.cursor = new am4charts.XYCursor();
+        
+
+        $('.dol-wrp').fadeOut();
+    }
+
+
+    </script>
+    
+</body>
+
+</html>
